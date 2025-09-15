@@ -1,73 +1,146 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    // Reference character controller
+    [Header("Refs")]
     [SerializeField] private CharacterController characterController;
-
-    // Reference input actions asset
     [SerializeField] private InputActionAsset inputActions;
+    private Gravity gravity; // your separate gravity script
 
-    // Input variables
+    [Header("Actions (Player map)")]
     private InputAction moveAction;
-    private Vector2 moveInput;
     private InputAction sprintAction;
+    private InputAction jumpAction;
+    private InputAction crouchAction;
 
-    // Move variables
-    private float moveSpeed = 6f;
-    private float sprintMultiplier = 2f;
-    private Vector3 velocity;
-    //private float gravity = -9.81f;
+    [Header("Movement")]
+    [SerializeField] private float walkSpeed = 6f;
+    [SerializeField] private float sprintMultiplier = 1.7f;
+    [SerializeField] private float crouchMoveSpeed = 3f;
+
+    [Header("Crouch (capsule)")]
+    [SerializeField] private float standHeight = 2.0f;
+    [SerializeField] private float crouchHeight = 1.2f;
+    [SerializeField] private float heightChangeSpeed = 10f; // how fast the capsule resizes
+    [SerializeField] private LayerMask ceilingMask = ~0;     // what blocks standing; default: everything
+
+    [Header("Jump")]
+    [SerializeField] private float jumpSpeed = 5.5f; // given to Gravity.Jump()
+
+    private Vector2 moveInput;
+    private bool isCrouchingHeld;
+    private float currentTargetHeight;
+    private Vector3 baseCenter; // center when standing
 
     private void Awake()
     {
-        // Use Awake(), not Start() method for these
+        if (!characterController) characterController = GetComponent<CharacterController>();
+        gravity = GetComponent<Gravity>();
 
-        // Gets the input action asset and actions
-        moveAction = inputActions.FindActionMap("Player").FindAction("Move");
-        sprintAction = inputActions.FindActionMap("Player").FindAction("Sprint");
+        var map = inputActions.FindActionMap("Player", throwIfNotFound: true);
+        moveAction   = map.FindAction("Move",   throwIfNotFound: true);
+        sprintAction = map.FindAction("Sprint", throwIfNotFound: true);
+        jumpAction   = map.FindAction("Jump",   throwIfNotFound: true);
+        crouchAction = map.FindAction("Crouch", throwIfNotFound: true);
 
-        // Reads moveAction value
-        moveAction.performed += context => moveInput = context.ReadValue<Vector2>();
-        // Cancels the action when not moving
-        moveAction.canceled += context => moveInput = Vector2.zero;
+        moveAction.performed  += ctx => moveInput = ctx.ReadValue<Vector2>();
+        moveAction.canceled   += _   => moveInput = Vector2.zero;
+
+        // Jump: trigger on performed
+        jumpAction.performed  += _ =>
+        {
+            if (gravity != null)
+                gravity.Jump(jumpSpeed);
+        };
+
+        // Crouch: hold-to-crouch
+        crouchAction.performed += _ => isCrouchingHeld = true;
+        crouchAction.canceled  += _ => isCrouchingHeld = false;
+
+        // Init capsule
+        characterController.height = standHeight;
+        baseCenter = characterController.center;
+        currentTargetHeight = standHeight;
+        ApplyCenterFromHeight(standHeight);
     }
 
-    // Allways use OnEnable and OnDisable functions when working with new input system
     private void OnEnable()
     {
         moveAction.Enable();
         sprintAction.Enable();
+        jumpAction.Enable();
+        crouchAction.Enable();
     }
 
     private void OnDisable()
     {
         moveAction.Disable();
         sprintAction.Disable();
+        jumpAction.Disable();
+        crouchAction.Disable();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        // Movement
-        Vector2 move = moveInput;
+        // --- Horizontal movement ---
+        var move = moveInput;
+        var wishDir = (move.y * transform.forward) + (move.x * transform.right);
+        wishDir = Vector3.ClampMagnitude(wishDir, 1f);
 
-        float speedMultiplier = sprintAction.ReadValue<float>() > 0 ? sprintMultiplier : 1f;
+        bool sprinting = sprintAction.ReadValue<float>() > 0.5f;
+        float speed =
+            isCrouchingHeld ? crouchMoveSpeed :
+            sprinting        ? walkSpeed * sprintMultiplier :
+                               walkSpeed;
 
-        Vector3 movement = (move.y * transform.forward) + (move.x * transform.right);
-        characterController.Move(movement * moveSpeed * speedMultiplier * Time.deltaTime);
+        characterController.Move(wishDir * speed * Time.deltaTime);
 
-        characterController.Move(velocity * Time.deltaTime);
-
-        // - Run when left shift is held
-        if (sprintAction.triggered)
+        // --- Crouch / Stand (smooth) ---
+        if (isCrouchingHeld)
         {
-            moveSpeed = 5f;
+            currentTargetHeight = crouchHeight;
         }
-        // - Return to walk speed when left shift is released
-        if (!sprintAction.triggered)
+        else
         {
-            moveSpeed = 3f;
+            // Only stand if there's headroom
+            if (HasHeadroomToStand())
+                currentTargetHeight = standHeight;
+            else
+                currentTargetHeight = crouchHeight;
         }
+
+        float newHeight = Mathf.MoveTowards(characterController.height, currentTargetHeight, heightChangeSpeed * Time.deltaTime);
+        if (!Mathf.Approximately(newHeight, characterController.height))
+        {
+            characterController.height = newHeight;
+            ApplyCenterFromHeight(newHeight);
+        }
+    }
+
+    // Keep feet on the ground while resizing capsule
+    private void ApplyCenterFromHeight(float height)
+    {
+        // CharacterController center is relative to object pivot.
+        // If your pivot is at feet, center.y should be height/2.
+        // If not, adjust baseCenter accordingly.
+        characterController.center = new Vector3(baseCenter.x, height * 0.5f, baseCenter.z);
+    }
+
+    // Prevent popping up into ceilings when trying to stand
+    private bool HasHeadroomToStand()
+    {
+        float radius = characterController.radius * 0.95f;
+        float current = characterController.height;
+        float extra = (standHeight - current) + 0.05f;
+
+        if (extra <= 0f) return true;
+
+        // Cast upward from current top
+        Vector3 origin = transform.position + characterController.center + Vector3.up * (current * 0.5f - radius);
+        // Sphere cast up by "extra"; if hit => no headroom
+        bool hit = Physics.SphereCast(origin, radius, Vector3.up, out _, extra, ceilingMask, QueryTriggerInteraction.Ignore);
+        return !hit;
     }
 }

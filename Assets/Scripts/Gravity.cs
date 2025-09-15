@@ -18,17 +18,22 @@ public class Gravity : MonoBehaviour
 
     void Update()
     {
-        // Check if grounded
+        // Ground check
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
         // Reset downward velocity if grounded
         if (isGrounded && velocity.y < 0)
-        {
             velocity.y = -2f;
-        }
 
-        // Apply gravity
+        // Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    // Call this from PlayerController
+    public void Jump(float jumpSpeed)
+    {
+        if (isGrounded)
+            velocity.y = jumpSpeed;
     }
 }
