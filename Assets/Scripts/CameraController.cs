@@ -1,90 +1,66 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class CameraController : MonoBehaviour
 {
-    // Reference player object
     [SerializeField] private GameObject playerObject;
-
-    // Reference input actions asset
     [SerializeField] private InputActionAsset inputActions;
 
-    // Input variables
+    public float sensX = 0.12f;   // tune to taste (no deltaTime)
+    public float sensY = 0.12f;   // tune to taste
+    public bool YRotOnly = false; // keep if you need it
+
     private InputAction lookAction;
-    private Vector2 lookInput;
+    private float xRotation; // pitch
+    private float yRotation; // yaw (stored on player)
+    public float playerYRotation; // if other scripts need it
 
-    // Toggle xRotation
-    public bool YRotOnly;
-
-    // Mouse sensitivity. Can be changed in inspector
-    public float sensX = 50;
-    public float sensY = 50;
-
-    // Used to get the mouse's X and Y rotation
-    private float xRotation;
-    private float yRotation;
-
-    public float playerYRotation; // Used for rotating sprite objects and enemies
-
-    private void Awake()
+    void Awake()
     {
-        // Use Awake(), not Start() method for these
-
-        // Gets the input action asset and action
-        lookAction = inputActions.FindActionMap("Player").FindAction("Look");
-
-        // Reads lookAction value
-        lookAction.performed += context => lookInput = context.ReadValue<Vector2>();
-        // Cancels the action when not moving mouse
-        lookAction.canceled += context => lookInput = Vector2.zero;
+        lookAction = inputActions.FindActionMap("Player", true).FindAction("Look", true);
     }
 
-    private void Start()
+    void OnEnable() => lookAction.Enable();
+    void OnDisable() => lookAction.Disable();
+
+    void Start()
     {
-        // Locks cursor
         Cursor.lockState = CursorLockMode.Locked;
-        // Hides cursor
         Cursor.visible = false;
+
+        // Initialize yaw from current player rotation (prevents jump on start)
+        yRotation = playerObject.transform.eulerAngles.y;
+        xRotation = transform.localEulerAngles.x;
+        // normalize pitch to -180..180 then clamp
+        if (xRotation > 180f) xRotation -= 360f;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
     }
 
-    // Allways use OnEnable and OnDisable functions when working with new input system
-    private void OnEnable()
+    void LateUpdate()
     {
-        lookAction.Enable();
-    }
+        // Read raw per-frame mouse delta (already frame-based)
+        Vector2 look = lookAction.ReadValue<Vector2>();
 
-    private void OnDisable()
-    {
-        lookAction.Disable();
-    }
+        float mouseX = look.x * sensX; // NO deltaTime here
+        float mouseY = look.y * sensY;
 
-    private void Update()
-    {
-        // Get mouse input
-        float mouseX = lookInput.x * sensX * Time.deltaTime;
-        float mouseY = lookInput.y * sensY * Time.deltaTime;
-
-        // Plug mouse input into xRotation and yRotation with 90 degree clamp on xRotation
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90, 90);
-
+        // accumulate
         yRotation += mouseX;
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
+        playerYRotation = yRotation;
 
-        playerYRotation = yRotation; // Used for rotating sprite objects and enemies in SpriteFacePlayer script
-
-
-        // Rotates the camera and player object
+        // Apply: yaw on player, pitch on camera
         if (YRotOnly)
         {
-            transform.rotation = Quaternion.Euler(0, yRotation, 0);
-            playerObject.transform.rotation = Quaternion.Euler(0, yRotation, 0);
+            playerObject.transform.rotation = Quaternion.Euler(0f, yRotation, 0f);
+            transform.localRotation = Quaternion.identity; // no pitch when Y-only
         }
         else
         {
-            transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
-            playerObject.transform.rotation = Quaternion.Euler(0, yRotation, 0);
+            playerObject.transform.rotation = Quaternion.Euler(0f, yRotation, 0f);
+            transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         }
     }
 }

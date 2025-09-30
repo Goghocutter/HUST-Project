@@ -6931,6 +6931,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4566176650753290, guid: 9b8802d83e59c8c448a7665322aa7d17, type: 3}
   m_PrefabInstance: {fileID: 610442291}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1368183366 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5640263808760307339, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+  m_PrefabInstance: {fileID: 2132287452}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1369685788
 GameObject:
   m_ObjectHideFlags: 0
@@ -9987,6 +9992,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4566176650753290, guid: 9b8802d83e59c8c448a7665322aa7d17, type: 3}
   m_PrefabInstance: {fileID: 1138125736}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1910424825 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2288264666808611984, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+  m_PrefabInstance: {fileID: 2132287452}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1927067750 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4566176650753290, guid: 9b8802d83e59c8c448a7665322aa7d17, type: 3}
@@ -11561,9 +11571,53 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: bodyRoot
+      value: 
+      objectReference: {fileID: 1910424825}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: walkSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: standHeight
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: crouchHeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: eyeHeightStand
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: cameraTransform
+      value: 
+      objectReference: {fileID: 1368183366}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: crouchMoveSpeed
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: eyeHeightCrouch
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: visualLerpSpeed
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4283734078138949186, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 6493354769060707873, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: sensX
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6493354769060707873, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      propertyPath: sensY
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 7672705101393565929, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
       propertyPath: m_RendererIndex
