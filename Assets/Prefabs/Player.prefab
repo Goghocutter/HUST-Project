@@ -338,6 +338,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   characterController: {fileID: 780253220413660221}
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  walkSpeed: 4
+  sprintMultiplier: 1.5
+  crouchMoveSpeed: 3
+  standHeight: 2
+  crouchHeight: 1.2
+  heightChangeSpeed: 10
+  ceilingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  jumpSpeed: 3.5
+  bodyRoot: {fileID: 0}
+  cameraTransform: {fileID: 0}
+  eyeHeightStand: 1.6
+  eyeHeightCrouch: 1
+  visualLerpSpeed: 12
 --- !u!114 &1647113113746633716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -651,9 +666,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
   playerObject: {fileID: 4283734078138949186}
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  YRotOnly: 0
   sensX: 50
   sensY: 50
+  YRotOnly: 0
   playerYRotation: 0
 --- !u!1 &8672021370201684320
 GameObject:
