@@ -1,153 +1,105 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Gravity))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("Refs")]
-    [SerializeField] private CharacterController characterController;
-    [SerializeField] private InputActionAsset inputActions;
-    private Gravity gravity; // your separate gravity script
+    [Header("Speeds")]
+    public float walkSpeed = 4.0f;
+    public float sprintMultiplier = 1.6f;
+    public float crouchMoveSpeed = 2.0f;
 
-    [Header("Actions (Player map)")]
-    private InputAction moveAction;
-    private InputAction sprintAction;
-    private InputAction jumpAction;
-    private InputAction crouchAction;
+    [Header("Capsule / Crouch")]
+    public float standHeight = 1.8f;
+    public float crouchHeight = 1.1f;
+    public float heightChangeSpeed = 6f;
+    public Vector3 controllerCenterStand = new Vector3(0, 0.9f, 0);
+    public Vector3 controllerCenterCrouch = new Vector3(0, 0.55f, 0);
 
-    [Header("Movement")]
-    [SerializeField] private float walkSpeed = 6f;
-    [SerializeField] private float sprintMultiplier = 1.7f;
-    [SerializeField] private float crouchMoveSpeed = 3f;
-
-    [Header("Crouch (capsule)")]
-    [SerializeField] private float standHeight = 2.0f;
-    [SerializeField] private float crouchHeight = 1.2f;
-    [SerializeField] private float heightChangeSpeed = 10f; // how fast the capsule resizes
-    [SerializeField] private LayerMask ceilingMask = ~0;     // what blocks standing; default: everything
+    [Header("Camera/Visuals (optional)")]
+    public Transform cameraTransform;
+    public float eyeHeightStand = 1.65f;
+    public float eyeHeightCrouch = 1.0f;
+    public Vector3 camOffsetFromFeetXZ = Vector3.zero;
+    public Transform bodyRoot;                          
+    public float visualLerpSpeed = 12f;
 
     [Header("Jump")]
-    [SerializeField] private float jumpSpeed = 5.5f; // given to Gravity.Jump()
+    public float jumpSpeed = 6.0f;
 
-    // --- NEW: Visual + Camera ---
-    [Header("Visual (mesh) & Camera")]
-    [Tooltip("Assign the visible capsule/character mesh root (child of the player).")]
-    [SerializeField] private Transform bodyRoot;
+    [HideInInspector] public bool wantSprint;
+    [HideInInspector] public bool wantCrouch;
+    [HideInInspector] public bool wantJumpPulse;
 
-    [Tooltip("Assign your Main Camera transform (can be unparented).")]
-    [SerializeField] private Transform cameraTransform;
+    [HideInInspector] public Vector2 moveInput;
 
-    [Tooltip("Eye height above feet when standing (meters). Tune to taste.")]
-    [SerializeField] private float eyeHeightStand = 1.6f;
+    CharacterController cc;
+    Gravity gravity;
 
-    [Tooltip("Eye height above feet when crouched (meters). Tune to taste).")]
-    [SerializeField] private float eyeHeightCrouch = 1.0f;
+    float currentTargetHeight;
+    Vector3 bodyLocalScaleStand = Vector3.one;
+    Vector3 bodyLocalPosStand = Vector3.zero;
 
-    [Tooltip("How fast camera/mesh interpolate to target pose.")]
-    [SerializeField] private float visualLerpSpeed = 12f;
-
-    private Vector2 moveInput;
-    private bool isCrouchingHeld;
-    private float currentTargetHeight;
-    private Vector3 baseCenter; // center when standing
-
-    // NEW: cached mesh + camera baselines
-    private Vector3 bodyLocalPosStand;
-    private Vector3 bodyLocalScaleStand;
-    private Vector3 camOffsetFromFeetXZ; // camera offset XZ relative to player position
-
-    private void Awake()
+    void Awake()
     {
-        if (!characterController) characterController = GetComponent<CharacterController>();
+        cc = GetComponent<CharacterController>();
         gravity = GetComponent<Gravity>();
 
-        var map = inputActions.FindActionMap("Player", throwIfNotFound: true);
-        moveAction = map.FindAction("Move", throwIfNotFound: true);
-        sprintAction = map.FindAction("Sprint", throwIfNotFound: true);
-        jumpAction = map.FindAction("Jump", throwIfNotFound: true);
-        crouchAction = map.FindAction("Crouch", throwIfNotFound: true);
-
-        moveAction.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        moveAction.canceled += _ => moveInput = Vector2.zero;
-
-        jumpAction.performed += _ => { if (gravity != null) gravity.Jump(jumpSpeed); };
-
-        // Hold-to-crouch
-        crouchAction.performed += _ => isCrouchingHeld = true;
-        crouchAction.canceled += _ => isCrouchingHeld = false;
-
-        // Init capsule
-        characterController.height = standHeight;
-        baseCenter = characterController.center;
+        // initialize controller
+        cc.height = standHeight;
+        cc.center = controllerCenterStand;
         currentTargetHeight = standHeight;
-        ApplyCenterFromHeight(standHeight);
 
-        // --- NEW: cache visual/camera baselines ---
         if (bodyRoot != null)
         {
-            bodyLocalPosStand = bodyRoot.localPosition;
             bodyLocalScaleStand = bodyRoot.localScale;
+            bodyLocalPosStand = bodyRoot.localPosition;
         }
+    }
 
-        if (cameraTransform == null && Camera.main != null)
-            cameraTransform = Camera.main.transform;
-
-        if (cameraTransform != null)
+    void Update()
+    {
+        Vector3 wishDir = Vector3.zero;
         {
-            // Store XZ offset so we only drive Y by eye height
-            Vector3 localFromFeet = cameraTransform.position - transform.position;
-            camOffsetFromFeetXZ = new Vector3(localFromFeet.x, 0f, localFromFeet.z);
+            var move = moveInput;
+            wishDir = (move.y * transform.forward) + (move.x * transform.right);
+            wishDir = Vector3.ClampMagnitude(wishDir, 1f);
         }
-    }
 
-    private void OnEnable()
-    {
-        moveAction.Enable();
-        sprintAction.Enable();
-        jumpAction.Enable();
-        crouchAction.Enable();
-    }
+        bool crouching = wantCrouch;
+        bool sprinting = wantSprint && !crouching;
 
-    private void OnDisable()
-    {
-        moveAction.Disable();
-        sprintAction.Disable();
-        jumpAction.Disable();
-        crouchAction.Disable();
-    }
+        float speed = crouching ? crouchMoveSpeed :
+                      sprinting ? walkSpeed * sprintMultiplier :
+                                  walkSpeed;
 
-    private void Update()
-    {
-        // --- Horizontal movement ---
-        var move = moveInput;
-        var wishDir = (move.y * transform.forward) + (move.x * transform.right);
-        wishDir = Vector3.ClampMagnitude(wishDir, 1f);
+        Vector3 horizontal = wishDir * speed;
+        Vector3 velocity = new Vector3(horizontal.x, gravity.VerticalVelocity, horizontal.z);
 
-        bool sprinting = sprintAction.ReadValue<float>() > 0.5f;
-        float speed =
-            isCrouchingHeld ? crouchMoveSpeed :
-            sprinting ? walkSpeed * sprintMultiplier :
-                        walkSpeed;
+        cc.Move(velocity * Time.deltaTime);
 
-        characterController.Move(wishDir * speed * Time.deltaTime);
-
-        // --- Crouch / Stand (smooth) ---
-        if (isCrouchingHeld)
+        if (crouching)
+        {
             currentTargetHeight = crouchHeight;
+            cc.center = Vector3.Lerp(cc.center, controllerCenterCrouch, Time.deltaTime * heightChangeSpeed);
+        }
         else
-            currentTargetHeight = HasHeadroomToStand() ? standHeight : crouchHeight;
-
-        float newHeight = Mathf.MoveTowards(characterController.height, currentTargetHeight, heightChangeSpeed * Time.deltaTime);
-        if (!Mathf.Approximately(newHeight, characterController.height))
         {
-            characterController.height = newHeight;
-            ApplyCenterFromHeight(newHeight);
+            currentTargetHeight = HasHeadroomToStand() ? standHeight : crouchHeight;
+            cc.center = Vector3.Lerp(cc.center,
+                (Mathf.Approximately(currentTargetHeight, standHeight) ? controllerCenterStand : controllerCenterCrouch),
+                Time.deltaTime * heightChangeSpeed);
         }
 
-        // --- NEW: Drive camera + visual mesh to match controller height ---
-        float t = Mathf.InverseLerp(standHeight, crouchHeight, characterController.height); // 0=stand,1=crouch
+        float newHeight = Mathf.MoveTowards(cc.height, currentTargetHeight, heightChangeSpeed * Time.deltaTime);
+        if (!Mathf.Approximately(newHeight, cc.height))
+            cc.height = newHeight;
 
-        // Camera height (world Y = feet + eyeHeight)
+        ConsumeJumpPulseIfAny(s => gravity.Jump(s), jumpSpeed);
+
+
+        float t = Mathf.InverseLerp(standHeight, crouchHeight, cc.height); // 0=stand,1=crouch
+
         if (cameraTransform != null)
         {
             float targetEyeY = Mathf.Lerp(eyeHeightStand, eyeHeightCrouch, t);
@@ -155,40 +107,29 @@ public class PlayerController : MonoBehaviour
             cameraTransform.position = Vector3.Lerp(cameraTransform.position, targetCamPos, visualLerpSpeed * Time.deltaTime);
         }
 
-        // Visible capsule mesh (keep feet planted, scale Y to match controller)
         if (bodyRoot != null)
         {
-            // Scale Y to match controller ratio
-            float yScale = Mathf.Clamp(characterController.height / standHeight, 0.01f, 10f);
+            float yScale = Mathf.Clamp(cc.height / standHeight, 0.01f, 10f);
             Vector3 targetScale = new Vector3(bodyLocalScaleStand.x, bodyLocalScaleStand.y * yScale, bodyLocalScaleStand.z);
             bodyRoot.localScale = Vector3.Lerp(bodyRoot.localScale, targetScale, visualLerpSpeed * Time.deltaTime);
 
-            // Move mesh down by half the height loss so feet stay put
-            float deltaH = (standHeight - characterController.height);
+            float deltaH = (standHeight - cc.height);
             Vector3 targetLocalPos = bodyLocalPosStand + Vector3.down * (deltaH * 0.5f);
             bodyRoot.localPosition = Vector3.Lerp(bodyRoot.localPosition, targetLocalPos, visualLerpSpeed * Time.deltaTime);
         }
     }
 
-    // Keep feet on the ground while resizing capsule
-    private void ApplyCenterFromHeight(float height)
+    public void ConsumeJumpPulseIfAny(System.Action<float> onJump, float jumpSpeedValue)
     {
-        // Assumes the player pivot is at the feet.
-        characterController.center = new Vector3(baseCenter.x, height * 0.5f, baseCenter.z);
+        if (!wantJumpPulse) return;
+        onJump?.Invoke(jumpSpeedValue);
+        wantJumpPulse = false;
     }
 
-    // Prevent popping up into ceilings when trying to stand
-    private bool HasHeadroomToStand()
+    bool HasHeadroomToStand()
     {
-        float radius = characterController.radius * 0.95f;
-        float current = characterController.height;
-        float extra = (standHeight - current) + 0.05f;
-
-        if (extra <= 0f) return true;
-
-        // Cast upward from current top
-        Vector3 origin = transform.position + characterController.center + Vector3.up * (current * 0.5f - radius);
-        bool hit = Physics.SphereCast(origin, radius, Vector3.up, out _, extra, ceilingMask, QueryTriggerInteraction.Ignore);
-        return !hit;
+        float radius = Mathf.Max(0.1f, cc.radius * 0.95f);
+        Vector3 head = transform.position + cc.center + Vector3.up * (cc.height * 0.5f - radius);
+        return !Physics.SphereCast(head, radius * 0.95f, Vector3.up, out _, 0.15f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
     }
 }

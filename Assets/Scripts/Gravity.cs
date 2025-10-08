@@ -1,39 +1,39 @@
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class Gravity : MonoBehaviour
 {
-    public float gravity = -9.81f;
-    public Transform groundCheck;
-    public float groundDistance = 0.4f;
-    public LayerMask groundMask;
+    public float gravity = -20f;
+    public float terminalVelocity = -40f;
+    public float groundedStick = -2f;
 
-    private CharacterController controller;
-    private Vector3 velocity;
-    private bool isGrounded;
+    public float VerticalVelocity { get; private set; }
 
-    void Start()
+    CharacterController cc;
+
+    void Awake()
     {
-        controller = GetComponent<CharacterController>();
+        cc = GetComponent<CharacterController>();
     }
 
     void Update()
     {
-        // Ground check
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        bool grounded = cc.isGrounded;
 
-        // Reset downward velocity if grounded
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;
-
-        // Gravity
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        if (grounded && VerticalVelocity < 0f)
+        {
+            VerticalVelocity = groundedStick;
+        }
+        else
+        {
+            VerticalVelocity += gravity * Time.deltaTime;
+            if (VerticalVelocity < terminalVelocity) VerticalVelocity = terminalVelocity;
+        }
     }
 
-    // Call this from PlayerController
-    public void Jump(float jumpSpeed)
+    public void Jump(float speed)
     {
-        if (isGrounded)
-            velocity.y = jumpSpeed;
+        if (!cc.isGrounded) return; 
+        VerticalVelocity = speed;
     }
 }

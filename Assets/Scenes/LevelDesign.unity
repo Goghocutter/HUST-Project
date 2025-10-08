@@ -87084,8 +87084,118 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4283734078138949186, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 2132287459}
+    - targetCorrespondingSourceObject: {fileID: 4283734078138949186, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      insertIndex: 3
+      addedObject: {fileID: 2132287458}
+    - targetCorrespondingSourceObject: {fileID: 4283734078138949186, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      insertIndex: 4
+      addedObject: {fileID: 2132287457}
+    - targetCorrespondingSourceObject: {fileID: 4283734078138949186, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2132287456}
   m_SourcePrefab: {fileID: 100100000, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+--- !u!1 &2132287453 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4283734078138949186, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+  m_PrefabInstance: {fileID: 2132287452}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2132287454 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1647113113746633716, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+  m_PrefabInstance: {fileID: 2132287452}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132287453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22cc0336d8db1ab43b2cfa961649ecde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gravity
+--- !u!114 &2132287455 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1363634301962557009, guid: 1817be713f9809e4dbc0bdfd85f701aa, type: 3}
+  m_PrefabInstance: {fileID: 2132287452}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132287453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3628beea337e7184988975337f4fe862, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+--- !u!114 &2132287456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132287453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e8df13b93bed424d8d039b6bc40c97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerContext
+  motor: {fileID: 0}
+  gravity: {fileID: 0}
+  cc: {fileID: 0}
+  Move: {x: 0, y: 0}
+  SprintHeld: 0
+  CrouchHeld: 0
+  JumpPressed: 0
+  InteractPressed: 0
+  lastGroundedAt: 0
+--- !u!114 &2132287457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132287453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e8df13b93bed424d8d039b6bc40c97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerContext
+  motor: {fileID: 0}
+  gravity: {fileID: 0}
+  cc: {fileID: 0}
+  Move: {x: 0, y: 0}
+  SprintHeld: 0
+  CrouchHeld: 0
+  JumpPressed: 0
+  InteractPressed: 0
+  lastGroundedAt: 0
+--- !u!114 &2132287458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132287453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54289969b82b697469b6623ca95556f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStateMachine
+  input: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &2132287459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132287453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 976bc08a1b51114408c56b0e3895659d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DevHUD
+  fsm: {fileID: 2132287458}
+  ctx: {fileID: 2132287457}
+  motor: {fileID: 2132287455}
+  gravity: {fileID: 2132287454}
 --- !u!4 &2132681104 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4566176650753290, guid: 9b8802d83e59c8c448a7665322aa7d17, type: 3}
