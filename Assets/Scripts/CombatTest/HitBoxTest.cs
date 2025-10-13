@@ -20,14 +20,14 @@ public class HitBoxTest : MonoBehaviour
     {
         if (other.CompareTag("Weakpoint"))
         {
-            Debug.Log("Hit weakpoint");
+            //Debug.Log("Hit weakpoint");
             Destroy(gameObject);
         }
         else
         {
             if (other.CompareTag("Hurtbox"))
             {
-                Debug.Log("Hit Hurtbox");
+                //Debug.Log("Hit Hurtbox");
                 Destroy(gameObject);
             }
         }
