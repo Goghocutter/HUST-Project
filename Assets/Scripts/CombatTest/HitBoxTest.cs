@@ -2,7 +2,19 @@ using UnityEngine;
 
 public class HitBoxTest : MonoBehaviour
 {
+    [SerializeField] private float baseDamage = 1.0f;
+    private float normalDMG;
+    public float _normalDMG => normalDMG;
+    private float critDMG;
+    public float _critDMG => critDMG;
+
     private float destroyDelay = 0.1f;
+
+    private void Start()
+    {
+        normalDMG = baseDamage;
+        critDMG = baseDamage * 2;
+    }
 
     private void Update()
     {
@@ -20,14 +32,12 @@ public class HitBoxTest : MonoBehaviour
     {
         if (other.CompareTag("Weakpoint"))
         {
-            //Debug.Log("Hit weakpoint");
             Destroy(gameObject);
         }
         else
         {
             if (other.CompareTag("Hurtbox"))
             {
-                //Debug.Log("Hit Hurtbox");
                 Destroy(gameObject);
             }
         }

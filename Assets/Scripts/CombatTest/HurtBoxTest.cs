@@ -19,22 +19,38 @@ public class HurtBoxTest : MonoBehaviour
     private Material originalMaterial;
     private Coroutine flashRoutine;
 
+    private EnemyStats enemyStats;
+
     private void Awake()
     {
         parent = transform.parent.gameObject;
         parentRB = parent.GetComponent<Rigidbody>();
         playerCamera = FindAnyObjectByType<Camera>();
         meshRenderer = parentRB.GetComponent<MeshRenderer>();
-        originalMaterial = meshRenderer.material;   
+        originalMaterial = meshRenderer.material;
+        enemyStats = parent.GetComponent<EnemyStats>();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Hitbox"))
+        //this part is very janky and pure hard code. Will fix later. There's also a bug that it deal crit+normal damage if you hit between both collisions
+        if (other.CompareTag("Hitbox") && gameObject.tag == "Hurtbox") //normal damage hit
         {
             Flash(); //flash
             playerCamera.GetComponent<Animator>().Play(shakeAnimation); //shake
             FindFirstObjectByType<HitStopManager>().Stop(stopDuration); //hitstop
+
+            enemyStats.TakeDMG(other.GetComponent<HitBoxTest>()._normalDMG);
+
+            parentRB.AddForce(playerCamera.transform.rotation * Vector3.forward * knockback, ForceMode.Impulse);
+        }
+        else if (other.CompareTag("Hitbox") && gameObject.tag == "Weakpoint") //crit damage hit
+        {
+            Flash(); //flash
+            playerCamera.GetComponent<Animator>().Play(shakeAnimation); //shake
+            FindFirstObjectByType<HitStopManager>().Stop(stopDuration); //hitstop
+
+            enemyStats.TakeDMG(other.GetComponent<HitBoxTest>()._critDMG);
 
             parentRB.AddForce(playerCamera.transform.rotation * Vector3.forward * knockback, ForceMode.Impulse);
         }
@@ -46,6 +62,8 @@ public class HurtBoxTest : MonoBehaviour
                 Flash(); //flash
                 playerCamera.GetComponent<Animator>().Play(shakeAnimation); //shake
                 FindFirstObjectByType<HitStopManager>().Stop(stopDuration); //hitstop
+
+                //enemyStats.TakeDMG(other.GetComponent<HitBoxTest>()._currentDMG);
 
                 parentRB.AddForce(playerCamera.transform.rotation * Vector3.forward * knockback / 1.2f, ForceMode.Impulse);
             }
