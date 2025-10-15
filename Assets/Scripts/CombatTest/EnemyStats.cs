@@ -3,7 +3,7 @@ using UnityEngine;
 public class EnemyStats : MonoBehaviour
 {
     [SerializeField] private float maxHP = 10f;
-    [SerializeField] private GameObject deathEffect;
+    [SerializeField] private ParticleSystem deathEffect;
     public float _maxHP => maxHP;
     private float currentHP;
     public float _currentHP => currentHP;

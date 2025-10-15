@@ -1008,7 +1008,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   maxHP: 10
-  deathEffect: {fileID: 3960542353330508693, guid: a2a8bc68152395843977dcf264c6d39f, type: 3}
+  deathEffect: {fileID: 4131806107084036167, guid: a2a8bc68152395843977dcf264c6d39f, type: 3}
 --- !u!1 &565910257
 GameObject:
   m_ObjectHideFlags: 0
@@ -2357,6 +2357,7 @@ MonoBehaviour:
   stopDuration: 0.1
   flashShader: {fileID: 2100000, guid: eeb80136ab08f3d419012055758c1579, type: 2}
   shakeAnimation: ShakeTest
+  onHitEffect: {fileID: 4131806107084036167, guid: 598395bdc77d97041a6cb6a27df1cbcf, type: 3}
 --- !u!54 &1164159221
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3465,6 +3466,7 @@ MonoBehaviour:
   stopDuration: 0.3
   flashShader: {fileID: 2100000, guid: eeb80136ab08f3d419012055758c1579, type: 2}
   shakeAnimation: ShakeHardTest
+  onHitEffect: {fileID: 4131806107084036167, guid: 598395bdc77d97041a6cb6a27df1cbcf, type: 3}
 --- !u!1 &1650279352 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: cbdda53aa8be0d841a4f044817656a44, type: 3}

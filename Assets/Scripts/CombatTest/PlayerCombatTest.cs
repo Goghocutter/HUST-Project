@@ -7,6 +7,7 @@ public class PlayerCombatTest : MonoBehaviour
     [SerializeField] private GameObject hitBox;
     [SerializeField] private Transform hitBoxPosition;
     [SerializeField] private float comboCooldown = 1f;
+
     private Vector3 originalScale;
     private Vector3 newScale;
     private Coroutine cooldownCoroutine;

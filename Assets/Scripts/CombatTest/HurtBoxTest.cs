@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class HurtBoxTest : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class HurtBoxTest : MonoBehaviour
     [SerializeField] private Material flashShader;
 
     [SerializeField] private string shakeAnimation;
+
+    [SerializeField] private ParticleSystem onHitEffect;
 
     private GameObject parent;
     private Rigidbody parentRB;
@@ -42,6 +45,8 @@ public class HurtBoxTest : MonoBehaviour
 
             enemyStats.TakeDMG(other.GetComponent<HitBoxTest>()._normalDMG);
 
+            Instantiate(onHitEffect, transform.position, transform.rotation);
+
             parentRB.AddForce(playerCamera.transform.rotation * Vector3.forward * knockback, ForceMode.Impulse);
         }
         else if (other.CompareTag("Hitbox") && gameObject.tag == "Weakpoint") //crit damage hit
@@ -51,6 +56,8 @@ public class HurtBoxTest : MonoBehaviour
             FindFirstObjectByType<HitStopManager>().Stop(stopDuration); //hitstop
 
             enemyStats.TakeDMG(other.GetComponent<HitBoxTest>()._critDMG);
+
+            Instantiate(onHitEffect, transform.position, transform.rotation);
 
             parentRB.AddForce(playerCamera.transform.rotation * Vector3.forward * knockback, ForceMode.Impulse);
         }
